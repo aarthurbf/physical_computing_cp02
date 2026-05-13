@@ -6,18 +6,12 @@ Smart Gym - CP02 | FIAP Physical Computing (IoT & IoB)
 import sqlite3
 import os
 
-# DB_PATH = os.path.join(os.path.dirname(__file__), "smart_gym.db")
 DB_PATH = os.path.join(os.path.dirname(__file__), "smart_gym.db")
-
 
 def criar_banco():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # -------------------------------------------------------
-    # TABELA: alunos
-    # Armazena o cadastro dos alunos da academia
-    # -------------------------------------------------------
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS alunos (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,10 +23,6 @@ def criar_banco():
         )
     """)
 
-    # -------------------------------------------------------
-    # TABELA: log_acessos
-    # Registra cada entrada do aluno na estação de treino
-    # -------------------------------------------------------
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS log_acessos (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
