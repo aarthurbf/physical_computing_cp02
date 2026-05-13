@@ -168,7 +168,7 @@ python src/smart_gym_cp02.py
 
 ## 🎬 Vídeo Demonstrativo
 
-> 🔗 [Adicione aqui o link do vídeo no YouTube/Drive]
+> 🔗 [https://youtube.com/shorts/99KwAtavkmg?feature=share]
 
 ---
 
