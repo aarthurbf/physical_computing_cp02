@@ -22,10 +22,6 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CONFIGURAÇÕES GERAIS
-# ─────────────────────────────────────────────────────────────────────────────
-# DB_PATH     = os.path.join(os.path.dirname(__file__), "db", "smart_gym.db")
 DB_PATH     = os.path.join(os.path.dirname(__file__), "..", "db", "smart_gym.db")
 MODEL_PATH  = os.path.join(os.path.dirname(__file__), "..", "pose_landmarker_full.task")
 SERIAL_PORT = "COM5"          # ← Ajustar conforme porta do Arduino
@@ -36,7 +32,7 @@ ESTADO_AGUARDANDO = "AGUARDANDO_LOGIN"
 ESTADO_TREINO     = "TREINO_ATIVO"
 ESTADO_CONCLUIDO  = "TREINO_CONCLUIDO"
 
-# Paleta de cores (visual dark + pink — identidade Smart Gym)
+# Paleta de cores
 COR_BG       = "#0d0d0d"
 COR_PAINEL   = "#1a1a1a"
 COR_DESTAQUE = "#e91e8c"
@@ -46,10 +42,6 @@ COR_TEXTO    = "#ffffff"
 COR_CINZA    = "#888888"
 COR_AZUL     = "#00e5ff"
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CAMADA DE DADOS — SQLite
-# ─────────────────────────────────────────────────────────────────────────────
 class BancoDados:
     def __init__(self, db_path: str):
         self.db_path = db_path
@@ -107,10 +99,6 @@ class BancoDados:
         conn.close()
         return total
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# LEITOR RFID (Serial) — executa em thread separada
-# ─────────────────────────────────────────────────────────────────────────────
 class LeitorRFID:
     def __init__(self, porta: str, baud: int):
         self.porta = porta
@@ -146,10 +134,6 @@ class LeitorRFID:
         if self.ser:
             self.ser.close()
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# MOTOR DE POSE — MediaPipe (executa em thread separada via update loop)
-# ─────────────────────────────────────────────────────────────────────────────
 class MotorPose:
     def __init__(self, model_path: str):
         self.detector   = None
@@ -214,10 +198,6 @@ def _calcular_angulo(a, b, c) -> float:
         ang = 360 - ang
     return ang
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# INTERFACE GRÁFICA — Tkinter
-# ─────────────────────────────────────────────────────────────────────────────
 class SmartGymApp:
     def __init__(self, root: tk.Tk):
         self.root  = root
@@ -247,9 +227,7 @@ class SmartGymApp:
         self._loop_rfid()
         self._loop_camera()
 
-    # ── Construção da UI ─────────────────────────────────────────────────────
     def _build_ui(self):
-        # ── Cabeçalho ────────────────────────────────────────────────────────
         header = tk.Frame(self.root, bg=COR_DESTAQUE, height=60)
         header.pack(fill=tk.X)
 
@@ -261,24 +239,20 @@ class SmartGymApp:
         self.lbl_hora.pack(side=tk.RIGHT, padx=20)
         self._atualizar_hora()
 
-        # ── Corpo principal ──────────────────────────────────────────────────
         corpo = tk.Frame(self.root, bg=COR_BG)
         corpo.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
 
-        # Coluna esquerda — painel de info
         painel_esq = tk.Frame(corpo, bg=COR_PAINEL, width=320, bd=0,
                                highlightthickness=1, highlightbackground=COR_DESTAQUE)
         painel_esq.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 12))
         painel_esq.pack_propagate(False)
         self._build_painel_info(painel_esq)
 
-        # Coluna direita — feed da câmera
         painel_cam = tk.Frame(corpo, bg=COR_PAINEL, bd=0,
                                highlightthickness=1, highlightbackground="#333333")
         painel_cam.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self._build_painel_camera(painel_cam)
 
-        # ── Rodapé ────────────────────────────────────────────────────────────
         rodape = tk.Frame(self.root, bg="#111111", height=30)
         rodape.pack(fill=tk.X)
         tk.Label(rodape,
@@ -316,7 +290,7 @@ class SmartGymApp:
 
         self._separador(parent)
 
-        # Avatar / ícone do aluno
+        # Avatar do aluno
         self.lbl_avatar = tk.Label(parent, text="👤", font=("Helvetica", 48),
                                     bg=COR_PAINEL, fg=COR_CINZA)
         self.lbl_avatar.pack(pady=(12, 0))
@@ -405,7 +379,6 @@ class SmartGymApp:
     def _separador(self, parent):
         tk.Frame(parent, bg="#333333", height=1).pack(fill=tk.X, padx=12, pady=4)
 
-    # ── Câmera ────────────────────────────────────────────────────────────────
     def _iniciar_camera(self):
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
@@ -442,7 +415,6 @@ class SmartGymApp:
 
         self.root.after(33, self._loop_camera)   # ~30 fps
 
-    # ── RFID polling ─────────────────────────────────────────────────────────
     def _loop_rfid(self):
         """Verifica RFID a cada 200ms em background (não bloqueia UI)."""
         if self.estado == ESTADO_AGUARDANDO:
@@ -451,7 +423,6 @@ class SmartGymApp:
                 self._processar_uid(uid)
         self.root.after(200, self._loop_rfid)
 
-    # ── Lógica de negócio ─────────────────────────────────────────────────────
     def _processar_uid(self, uid: str):
         aluno = self.db.buscar_aluno_por_uid(uid)
         if aluno:
@@ -488,7 +459,7 @@ class SmartGymApp:
             return
         meta = self.perfil_ativo["repeticoes"]
 
-        # Lógica rosca/flexão: descida (> 160°) → subida (< 35°) = 1 rep
+        # Lógica rosca/flexão
         if angulo > 160:
             self.estagio = "descida"
         if angulo < 35 and self.estagio == "descida":
@@ -541,7 +512,6 @@ class SmartGymApp:
             if aluno:
                 self._ativar_treino(aluno, "GUEST:000000")
 
-    # ── Helpers de UI ─────────────────────────────────────────────────────────
     def _atualizar_reps(self, reps: int):
         meta = self.perfil_ativo["repeticoes"] if self.perfil_ativo else 1
         self.lbl_reps.configure(text=str(reps))
@@ -570,17 +540,12 @@ class SmartGymApp:
         self.lbl_hora.configure(text=agora)
         self.root.after(1000, self._atualizar_hora)
 
-    # ── Encerramento ──────────────────────────────────────────────────────────
     def _sair(self):
         if self.cap:
             self.cap.release()
         self.rfid.fechar()
         self.root.destroy()
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PONTO DE ENTRADA
-# ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     # Garante que o banco existe antes de abrir a UI
     if not os.path.exists(DB_PATH):
