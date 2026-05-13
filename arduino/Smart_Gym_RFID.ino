@@ -19,7 +19,7 @@
  *
  * Protocolo Serial:
  *   Baud: 9600
- *   Saída: "UID: XX:XX:XX:XX\n"
+ *   Saída: "UID: XX:XX:XX:XX"
  *
  * Bibliotecas necessárias (instalar via Library Manager):
  *   - MFRC522 by GithubCommunity
@@ -29,22 +29,21 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-// ── Pinos ────────────────────────────────────────────────────────────────────
+// Pinos
 #define SS_PIN    10
 #define RST_PIN    9
 #define LED_VERDE  7
 #define LED_VERM   8
 #define BUZZER     6
 
-// ── Objetos ──────────────────────────────────────────────────────────────────
+// Objetos
 MFRC522 rfid(SS_PIN, RST_PIN);
 
-// Debounce: evita leitura duplicada do mesmo cartão
+// Debounce
 String ultimoUID    = "";
 unsigned long tUlt  = 0;
 const unsigned long DEBOUNCE_MS = 2000;
 
-// ─────────────────────────────────────────────────────────────────────────────
 void setup() {
   Serial.begin(9600);
   SPI.begin();
@@ -66,14 +65,13 @@ void setup() {
   Serial.println("Aguardando cartao...");
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 void loop() {
   // Verifica se há novo cartão
   if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
     return;
   }
 
-  // Monta string do UID no formato XX:XX:XX:XX (maiúsculo)
+  // Monta string do UID no formato XX:XX:XX:XX
   String uid = "";
   for (byte i = 0; i < rfid.uid.size; i++) {
     if (rfid.uid.uidByte[i] < 0x10) uid += "0";
@@ -97,7 +95,7 @@ void loop() {
   Serial.print("UID: ");
   Serial.println(uid);
 
-  // Feedback visual/sonoro
+  // Feedback visual
   beep(1, 100);
   digitalWrite(LED_VERDE, HIGH);
   delay(300);
@@ -107,7 +105,6 @@ void loop() {
   rfid.PCD_StopCrypto1();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 void beep(int vezes, int duracao_ms) {
   for (int i = 0; i < vezes; i++) {
     digitalWrite(BUZZER, HIGH);
